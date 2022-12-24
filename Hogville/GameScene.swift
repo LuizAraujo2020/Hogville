@@ -8,6 +8,11 @@
 
 import SpriteKit
 
+enum ColliderType: UInt32 {
+    case Animal = 1
+    case Food = 2
+}
+
 class GameScene: SKScene {
     var movingPig: Pig?
     var lastUpdateTime: TimeInterval = 0.0
@@ -19,6 +24,11 @@ class GameScene: SKScene {
     override init(size: CGSize) {
         super.init(size: size)
         
+        /// Disables gravity in your scene.
+        physicsWorld.gravity = CGVectorMake(0.0, 0.0)
+        /// Registers your scene as the contact delegate of the physics world.
+        physicsWorld.contactDelegate = self
+
         loadLevel()
         spawnAnimal()
     }
@@ -143,5 +153,30 @@ class GameScene: SKScene {
     
     required init(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+}
+
+
+extension GameScene: SKPhysicsContactDelegate {
+    func didBeginContact(contact: SKPhysicsContact) {
+        /// These two lines give you the nodes that just collided.
+        /// There is no specific order for the nodes,
+        /// so you have to check the objects yourself if you care which is which.
+        let firstNode = contact.bodyA.node
+        let secondNode = contact.bodyB.node
+        
+        /// You perform a bitwise-OR of the categories of the two collided nodes
+        /// and store it in collision.
+        let collision = firstNode!.physicsBody!.categoryBitMask | secondNode!.physicsBody!.categoryBitMask
+        
+        /// Figure out what kind of collision occurred
+        /// by comparing collision with the bit mask for an animal/animal or animal/food collision.
+        if collision == ColliderType.Animal.rawValue | ColliderType.Animal.rawValue {
+            NSLog("Animal collision detected")
+        } else if collision == ColliderType.Animal.rawValue | ColliderType.Food.rawValue {
+            NSLog("Food collision detected.")
+        } else {
+            NSLog("Error: Unknown collision category \(collision)")
+        }
     }
 }
