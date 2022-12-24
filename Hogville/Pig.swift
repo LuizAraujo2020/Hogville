@@ -19,6 +19,10 @@ class Pig: SKSpriteNode {
     var hungry = true
     var eating = false
 
+    /// End Game
+    /// Flag to mark pigs while they are in the process of leaving the game.
+    var removing = false
+
     init(imageNamed name: String) {
         let texture = SKTexture(imageNamed: name)
         let textures = [SKTexture(imageNamed:"pig_1"),
@@ -79,6 +83,8 @@ class Pig: SKSpriteNode {
             
             /// Rotate the pig so that it faces the direction it’s moving.
             zRotation = atan2(CGFloat(velocity.y), CGFloat(velocity.x)) + CGFloat(M_PI_2)
+            
+            checkForHome()
         }/// End: ` if !eating `
     }
     
@@ -175,6 +181,37 @@ class Pig: SKSpriteNode {
             })
             
             run(SKAction.sequence([SKAction.wait(forDuration: 1.0), blockAction]))
+        }
+    }
+    
+    /// END GAME
+    func checkForHome() {
+        /// Hungry pigs won’t go to sleep, so you first check if the pig is hungry
+        /// or is already set to be removed from the game.
+        if hungry || removing {
+            return
+        }
+        
+        /// Here you get the homeNode.
+        let s = scene as! GameScene
+        let homeNode = s.homeNode
+        
+        /// You then check if the pig's frame overlaps the barn's. If that's the case,
+        /// you set the pig's removing flag to true and clear its waypoints
+        /// and any running actions.
+        if frame.intersects(homeNode.frame) {
+            removing = true
+            
+            wayPoints.removeAll(keepingCapacity: false)
+            removeAllActions()
+            
+            /// Here you run another sequence of actions that first runs a group of actions simultaneously,
+            /// and when those are done it removes the pig from the scene.
+            /// The group of actions fades out the pig's sprite while it moves the pig to the center of the barn.
+            run(SKAction.sequence([
+                SKAction.group([SKAction.fadeAlpha(to: 0.0, duration: 0.5),
+                                SKAction.move(to: homeNode.position, duration: 0.5)]),
+                SKAction.removeFromParent()]))
         }
     }
 
