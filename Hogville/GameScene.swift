@@ -13,29 +13,70 @@ class GameScene: SKScene {
     var lastUpdateTime: TimeInterval = 0.0
     var dt: TimeInterval = 0.0
     
+    var homeNode = SKNode()
+    var currentSpawnTime: TimeInterval = 5.0
+
     override init(size: CGSize) {
         super.init(size: size)
         
-        let bg = SKSpriteNode(imageNamed: "bg_2_grassy")
+        loadLevel()
+        spawnAnimal()
+    }
+    
+    func loadLevel () {
+        /// Create the background.
+        let bg = SKSpriteNode(imageNamed:"bg_2_grassy")
         bg.anchorPoint = CGPoint(x: 0, y: 0)
         addChild(bg)
         
+        /// Create an SKSpriteNode for the trough and give it the name "food".
+        /// You place the node near the center of the screen and add it to the scene.
+        let foodNode = SKSpriteNode(imageNamed:"trough_3_full")
+        foodNode.name = "food"
+        foodNode.position = CGPoint(x:250, y:200)
+        foodNode.zPosition = 1
+        
+        // More code later
+        
+        addChild(foodNode)
+        
+        /// Creates the barn and positions it in the lower-right corner of your scene.
+        homeNode = SKSpriteNode(imageNamed: "barn")
+        homeNode.name = "home"
+        homeNode.position = CGPoint(x: 500, y: 20)
+        homeNode.zPosition = 1
+        addChild(homeNode)
+        
+        currentSpawnTime = 5.0
+    }
+    
+    func spawnAnimal() {
+        /// Decreases the time between spawns by 0.2 seconds every time the game spawns a pig.
+        currentSpawnTime -= 0.2
+        
+        /// Ensure the spawn time never falls below one second,
+        /// because anything faster than that would make the game too difficult,
+        /// and if it hit zero, things would probably break.
+        if currentSpawnTime < 1.0 {
+            currentSpawnTime = 1.0
+        }
+        
+        /// Here you create a pig and add it to the scene.
         let pig = Pig(imageNamed: "pig_1")
+        pig.position = CGPoint(x: 20, y: Int(arc4random_uniform(300)))
         pig.name = "pig"
-        pig.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        
         addChild(pig)
+        
+        run(SKAction.sequence(
+                           [SKAction.wait(forDuration: currentSpawnTime),
+                                SKAction.run({ self.spawnAnimal()}
+                           )]
+            ))
     }
+
     
-    required init(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    
-    
-    //  override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-    //    <#code#>
-    //  }
-    //  func touchesBegan(touches: NSSet, withEvent event: UIEvent) {
+    // MARK: Touches
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch: AnyObject in touches {
             let location = touch.location(in: self)
@@ -49,11 +90,6 @@ class GameScene: SKScene {
         }
     }
     
-    //  override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-    //    <#code#>
-    //  }
-    
-//    func touchesMoved(touches: NSSet, withEvent event: UIEvent) {
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch: AnyObject in touches {
             let location = touch.location(in: self)
@@ -63,10 +99,6 @@ class GameScene: SKScene {
         }
     }
     
-    //  override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-    //    <#code#>
-    //  }
-//    func touchesEnded(touches: NSSet, withEvent event: UIEvent) {
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         movingPig = nil
     }
@@ -107,4 +139,9 @@ class GameScene: SKScene {
         })
     }
 
+    
+    
+    required init(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
