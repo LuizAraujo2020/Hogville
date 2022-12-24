@@ -6,7 +6,6 @@
 //  Copyright © 2022 Jean-Pierre Distler. All rights reserved.
 //
 
-
 import SpriteKit
 
 class Pig: SKSpriteNode {
@@ -57,22 +56,32 @@ class Pig: SKSpriteNode {
                 run(moveAnimation, withKey:"moveAction")
             }
             
-            //1
+            /// Check to ensure there are waypoints left in the array.
             if wayPoints.count > 0 {
                 let targetPoint = wayPoints[0]
                 
-                //Code that calculates and updates the pig’s new position along the path between the waypoints.
-                //1
+                /// Code that calculates and updates the pig’s new position along the path between the waypoints.
+                /// You calculate a vector that points in the direction the pig should travel
+                /// and has a length representing the distance the pig should move in dt seconds.
                 let offset = CGPoint(x: targetPoint.x - currentPosition.x, y: targetPoint.y - currentPosition.y)
                 let length = Double(sqrtf(Float(offset.x * offset.x) + Float(offset.y * offset.y)))
                 let direction = CGPoint(x:CGFloat(offset.x) / CGFloat(length), y: CGFloat(offset.y) / CGFloat(length))
                 velocity = CGPoint(x: direction.x * POINTS_PER_SEC, y: direction.y * POINTS_PER_SEC)
                 
-                //2
+                /// You calculate the pig’s new position by multiplying velocity by dt
+                /// and adding the result to the pig’s current position. Because velocity stores the distance the pig should travel in one second and dt holds the number of seconds that have passed since the last call to move,
+                /// multiplying the two results in the distance the pig should travel in dt seconds.
                 newPosition = CGPoint(x:currentPosition.x + velocity.x * CGFloat(dt), y:currentPosition.y + velocity.y * CGFloat(dt))
                 position = checkBoundaries(position: newPosition)
                 
-                //3
+                /// Finally, you check if the pig has reached the waypoint
+                /// by seeing if the pig’s frame contains the targetPoint.
+                /// In this case, you remove the point from the array
+                /// so that your next call to move will use the next point.
+                /// Note that it’s important to check if the frame contains
+                /// the target point (rather than checking if the position equals the target point),
+                /// effectively stopping the pig when he’s “close enough”.
+                /// That makes some of the calculations later a bit easier.
                 if frame.contains(targetPoint) {
                     wayPoints.remove(at: 0)
                 }
@@ -90,24 +99,22 @@ class Pig: SKSpriteNode {
     }
     
     func createPathToMove() -> CGPath? {
-        //1
+        /// First, you check if you have enough waypoints to create a path.
+        /// A path has at least on line and a line needs at least 2 points.
+        /// If you have less than 2 points you just return nil.
         if wayPoints.count <= 1 {
             return nil
         }
-        //2
+        /// Then, you create a mutable CGPathRef so you can add points to it.
         let ref = CGMutablePath()
-        //        let line_path:CGMutablePath = CGMutablePath()
-        //3
+        /// This for loop iterates over all the stored waypoints to build the path.
         for i in 0..<wayPoints.count {
             let p = wayPoints[i]
             
-            //4
+            /// Check if the path is just starting, indicated by an i value of zero.
             if i == 0 {
                 ref.move(to: p)
-                //                CGPathMoveToPoint(ref, NULL, CGFloat(p.x), CGFloat(p.y))
-                //                CGPathMoveToPoint(ref, UnsafePointer<CoreFoundation.CGAffineTransform>, p.x, p.y)
             } else {
-                //                CGPathAddLineToPoint(ref, nil, p.x, p.y)
                 ref.addLine(to: p)
             }
         }
@@ -132,15 +139,21 @@ class Pig: SKSpriteNode {
     }
 
     func checkBoundaries(position: CGPoint) -> CGPoint {
-        //1
+        /// First, you assign the current velocity and point to local variables.
         var newVelocity = velocity
         var newPosition = position
         
-        //2
+        /// Here you define the important points on the screen.
+        /// You can use bottomLeft to check if the pig is moving off screen from the left
+        /// or bottom sides and topRight to check the top and right sides of the screen.
+        /// You perform these checks inside the following if statements, one for each side of the screen.
         let bottomLeft = CGPoint(x: 0, y: 0)
         let topRight = CGPoint(x:scene!.size.width, y:scene!.size.height)
         
-        //3
+        /// This first if statement checks the x value of newPosition.
+        /// If this value is zero or less, the pig is leaving the screen from the left side.
+        /// To avoid this, you set the pig's x-position to the left boundary—zero—and reverse
+        /// the x-component of the velocity so the pig starts moving in the opposite direction.
         if newPosition.x <= bottomLeft.x {
             newPosition.x = bottomLeft.x
             newVelocity.x = -newVelocity.x
@@ -149,6 +162,7 @@ class Pig: SKSpriteNode {
             newVelocity.x = -newVelocity.x
         }
         
+        /// This other if statements do the same for the remaining three bounds of the screen.
         if newPosition.y <= bottomLeft.y {
             newPosition.y = bottomLeft.y
             newVelocity.y = -newVelocity.y
@@ -157,6 +171,7 @@ class Pig: SKSpriteNode {
             newVelocity.y = -newVelocity.y
         }
         
+        /// At the end, you change velocity to whatever value you calculated and then return newPosition.
         velocity = newVelocity
         
         return newPosition

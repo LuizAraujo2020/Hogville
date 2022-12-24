@@ -10,7 +10,7 @@ import SpriteKit
 
 enum ColliderType: UInt32 {
     case Animal = 1
-    case Food = 2
+    case Food   = 2
 }
 
 class GameScene: SKScene {
@@ -53,7 +53,6 @@ class GameScene: SKScene {
         foodNode.physicsBody!.categoryBitMask = ColliderType.Food.rawValue
         foodNode.physicsBody!.contactTestBitMask = ColliderType.Animal.rawValue
         foodNode.physicsBody!.isDynamic = false
-        
         
         addChild(foodNode)
         
@@ -167,14 +166,20 @@ class GameScene: SKScene {
     }
     
     func drawLines() {
-        //1
+        /// You'll redraw the path every frame, so first you remove any old lines.
+        /// To do so, you enumerate over all nodes with the name "line"
+        /// and you remove them from the scene.
         enumerateChildNodes(withName: "line", using: {node, stop in
             node.removeFromParent()
         })
         
-        //2
+        /// Next, you enumerate over all the pigs in your scene.
         enumerateChildNodes(withName: "pig", using: {node, stop in
-            //3
+            /// For each pig, you use the method you just added and try to get a new path.
+            /// If you got a path you create an SKShapeNode and assign the path to it's path property.
+            /// After that you name it "line". Next you set the stroke color of the shape to gray
+            /// and the fill color to nil. You can use any color you want,
+            /// but I think gray will be visible on the most backgrounds.
             let pig = node as! Pig
             if let path = pig.createPathToMove() {
                 let shapeNode = SKShapeNode()
@@ -184,6 +189,7 @@ class GameScene: SKScene {
                 shapeNode.lineWidth = 2
                 shapeNode.zPosition = 1
                 
+                /// Finally, you add shapeNode to your scene so that the scene will render it.
                 self.addChild(shapeNode)
             }
         })
@@ -206,7 +212,6 @@ class GameScene: SKScene {
         gameOver = false
         spawnAnimal()
     }
-
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -216,9 +221,6 @@ class GameScene: SKScene {
 extension GameScene: SKPhysicsContactDelegate {
 
     func didBegin(_ contact: SKPhysicsContact) {
-        
-        print("➡️ Colidiu")
-        
         /// These two lines give you the nodes that just collided.
         /// There is no specific order for the nodes,
         /// so you have to check the objects yourself if you care which is which.
@@ -233,7 +235,6 @@ extension GameScene: SKPhysicsContactDelegate {
         /// by comparing collision with the bit mask for an animal/animal or animal/food collision.
         if collision == ColliderType.Animal.rawValue | ColliderType.Animal.rawValue {
             handleAnimalCollision()
-            print("➡️ Animal X Animal")
             
         } else if collision == ColliderType.Animal.rawValue | ColliderType.Food.rawValue {
             var pig: Pig!
