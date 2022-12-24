@@ -13,14 +13,16 @@ enum ColliderType: UInt32 {
     case Food = 2
 }
 
-class GameScene: SKScene, SKPhysicsContactDelegate {
+class GameScene: SKScene {
     var movingPig: Pig?
     var lastUpdateTime: TimeInterval = 0.0
     var dt: TimeInterval = 0.0
     
     var homeNode = SKNode()
     var currentSpawnTime: TimeInterval = 5.0
-
+    
+    var gameOver = false
+    
     override init(size: CGSize) {
         super.init(size: size)
         
@@ -28,7 +30,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         physicsWorld.gravity = CGVectorMake(0.0, 0.0)
         /// Registers your scene as the contact delegate of the physics world.
         physicsWorld.contactDelegate = self
-
+        
         loadLevel()
         spawnAnimal()
     }
@@ -51,7 +53,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         foodNode.physicsBody!.categoryBitMask = ColliderType.Food.rawValue
         foodNode.physicsBody!.contactTestBitMask = ColliderType.Animal.rawValue
         foodNode.physicsBody!.isDynamic = false
-
+        
         
         addChild(foodNode)
         
@@ -66,6 +68,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func spawnAnimal() {
+        if gameOver {
+            return
+        }
+        
         /// Decreases the time between spawns by 0.2 seconds every time the game spawns a pig.
         currentSpawnTime -= 0.2
         
@@ -84,15 +90,40 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(pig)
         
         run(SKAction.sequence(
-                           [SKAction.wait(forDuration: currentSpawnTime),
-                                SKAction.run({ self.spawnAnimal()}
-                           )]
-            ))
+            [SKAction.wait(forDuration: currentSpawnTime),
+             SKAction.run({ self.spawnAnimal()}
+                         )]
+        ))
     }
-
+    
+    func handleAnimalCollision() {
+        gameOver = true
+        
+        let gameOverLabel = SKLabelNode(fontNamed: "Thonburi-Bold")
+        gameOverLabel.text = "Game Over!"
+        gameOverLabel.name = "label"
+        gameOverLabel.fontSize = 35.0
+        gameOverLabel.position = CGPointMake(size.width / 2.0, size.height / 2.0 + 20.0)
+        gameOverLabel.zPosition = 5
+        
+        let tapLabel = SKLabelNode(fontNamed: "Thonburi-Bold")
+        tapLabel.text = "Tap to restart."
+        tapLabel.name = "label"
+        tapLabel.fontSize = 25.0
+        tapLabel.position = CGPointMake(size.width / 2.0, size.height / 2.0 - 20.0)
+        tapLabel.zPosition = 5
+        
+        addChild(gameOverLabel)
+        addChild(tapLabel)
+    }
+    
     
     // MARK: Touches
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if gameOver {
+            restartGame()
+        }
+
         for touch: AnyObject in touches {
             let location = touch.location(in: self)
             let node = atPoint(location)
@@ -119,16 +150,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     override func update(_ currentTime: CFTimeInterval) {
-        dt = currentTime - lastUpdateTime
-        lastUpdateTime = currentTime
-        
-        enumerateChildNodes(withName: "pig", using: {node, stop in
-            let pig = node as! Pig
-            pig.move(dt: self.dt)
-        })
-        
-        drawLines()
-
+        if !gameOver {
+            dt = currentTime - lastUpdateTime
+            lastUpdateTime = currentTime
+            
+            enumerateChildNodes(withName: "pig", using: {node, stop in
+                let pig = node as! Pig
+                pig.move(dt: self.dt)
+            })
+            
+            drawLines()
+        }
     }
     
     func drawLines() {
@@ -153,9 +185,30 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
         })
     }
+    
+    func restartGame() {
+        enumerateChildNodes(withName: "line", using: {node, stop in
+            node.removeFromParent()
+        })
+        
+        enumerateChildNodes(withName: "pig", using: {node, stop in
+            node.removeFromParent()
+        })
+        
+        enumerateChildNodes(withName: "label", using: {node, stop in
+            node.removeFromParent()
+        })
+        
+        currentSpawnTime = 5.0
+        gameOver = false
+        spawnAnimal()
+    }
+
+}
+
+extension GameScene: SKPhysicsContactDelegate {
 
     func didBegin(_ contact: SKPhysicsContact) {
-        print("➡️ Entrou na func\(#function)")
         /// These two lines give you the nodes that just collided.
         /// There is no specific order for the nodes,
         /// so you have to check the objects yourself if you care which is which.
@@ -169,7 +222,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         /// Figure out what kind of collision occurred
         /// by comparing collision with the bit mask for an animal/animal or animal/food collision.
         if collision == ColliderType.Animal.rawValue | ColliderType.Animal.rawValue {
-            NSLog("Animal collision detected")
+            handleAnimalCollision()
+
             
         } else if collision == ColliderType.Animal.rawValue | ColliderType.Food.rawValue {
             var pig: Pig!
