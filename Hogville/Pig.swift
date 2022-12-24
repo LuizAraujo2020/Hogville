@@ -38,6 +38,7 @@ class Pig: SKSpriteNode {
         /// Indicate that this node should produce contact notifications
         /// whenever it touches any other physics body that belongs to any category inside the bit mask.
         /// Allow pigs to pass right through other physics objects.
+        physicsBody!.contactTestBitMask = ColliderType.Animal.rawValue | ColliderType.Food.rawValue
         physicsBody!.collisionBitMask = 0
     }
     

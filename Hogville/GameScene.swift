@@ -19,7 +19,7 @@ class GameScene: SKScene {
     var dt: TimeInterval = 0.0
     
     var homeNode = SKNode()
-    var currentSpawnTime: TimeInterval = 5.0
+    var currentSpawnTime: TimeInterval = 10.0
     
     var gameOver = false
     
@@ -207,15 +207,22 @@ class GameScene: SKScene {
         spawnAnimal()
     }
 
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 extension GameScene: SKPhysicsContactDelegate {
 
     func didBegin(_ contact: SKPhysicsContact) {
+        
+        print("➡️ Colidiu")
+        
         /// These two lines give you the nodes that just collided.
         /// There is no specific order for the nodes,
         /// so you have to check the objects yourself if you care which is which.
-        let firstNode = contact.bodyA.node
+        let firstNode  = contact.bodyA.node
         let secondNode = contact.bodyB.node
 
         /// You perform a bitwise-OR of the categories of the two collided nodes
@@ -226,7 +233,7 @@ extension GameScene: SKPhysicsContactDelegate {
         /// by comparing collision with the bit mask for an animal/animal or animal/food collision.
         if collision == ColliderType.Animal.rawValue | ColliderType.Animal.rawValue {
             handleAnimalCollision()
-
+            print("➡️ Animal X Animal")
             
         } else if collision == ColliderType.Animal.rawValue | ColliderType.Food.rawValue {
             var pig: Pig!
@@ -243,9 +250,5 @@ extension GameScene: SKPhysicsContactDelegate {
         } else {
             NSLog("Error: Unknown collision category \(collision)")
         }
-    }
-    
-    required init(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 }
