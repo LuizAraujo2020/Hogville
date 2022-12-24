@@ -56,7 +56,7 @@ class Pig: SKSpriteNode {
             return nil
         }
         //2
-        var ref = CGMutablePath()
+        let ref = CGMutablePath()
 //        let line_path:CGMutablePath = CGMutablePath()
         //3
         for i in 0..<wayPoints.count {
