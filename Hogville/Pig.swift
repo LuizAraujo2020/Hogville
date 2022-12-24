@@ -214,6 +214,10 @@ class Pig: SKSpriteNode {
                 SKAction.removeFromParent()]))
         }
     }
+    
+    func clearWayPoints() {
+        wayPoints.removeAll(keepingCapacity: false)
+    }
 
     required init(coder aDecoder: NSCoder) {
         let textures = [SKTexture(imageNamed:"pig_1"), SKTexture(imageNamed:"pig_2"), SKTexture(imageNamed:"pig_3")]

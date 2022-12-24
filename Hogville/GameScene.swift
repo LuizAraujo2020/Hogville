@@ -89,6 +89,8 @@ class GameScene: SKScene {
         
         addChild(pig)
         
+        pig.moveRandom()
+        
         run(SKAction.sequence(
             [SKAction.wait(forDuration: currentSpawnTime),
              SKAction.run({ self.spawnAnimal()}
@@ -130,6 +132,7 @@ class GameScene: SKScene {
             
             if node.name == "pig" {
                 let pig = node as! Pig
+                pig.clearWayPoints()
                 pig.addMovingPoint(point: location)
                 movingPig = pig
             }
