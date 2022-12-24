@@ -52,6 +52,9 @@ class Pig: SKSpriteNode {
                                   y: currentPosition.y + velocity.y * CGFloat(dt))
             position = checkBoundaries(position: newPosition)
         }
+        
+        /// Rotate the pig so that it faces the direction it’s moving.
+        zRotation = atan2(CGFloat(velocity.y), CGFloat(velocity.x)) + CGFloat(M_PI_2)
     }
     
     func createPathToMove() -> CGPath? {
