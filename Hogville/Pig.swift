@@ -24,6 +24,14 @@ class Pig: SKSpriteNode {
         moveAnimation = SKAction.animate(with: textures, timePerFrame:0.1)
 
         super.init(texture: texture, color: UIColor.clear, size: texture.size())
+        
+        /// Adding Physics Bodies
+        physicsBody = SKPhysicsBody(circleOfRadius: size.width / 2.0)
+        physicsBody!.categoryBitMask = ColliderType.Animal.rawValue
+        /// Indicate that this node should produce contact notifications
+        /// whenever it touches any other physics body that belongs to any category inside the bit mask.
+        /// Allow pigs to pass right through other physics objects.
+        physicsBody!.collisionBitMask = 0
     }
     
     /// This method simply adds the given point to the wayPoints array.

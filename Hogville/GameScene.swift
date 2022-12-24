@@ -13,7 +13,7 @@ enum ColliderType: UInt32 {
     case Food = 2
 }
 
-class GameScene: SKScene {
+class GameScene: SKScene, SKPhysicsContactDelegate {
     var movingPig: Pig?
     var lastUpdateTime: TimeInterval = 0.0
     var dt: TimeInterval = 0.0
@@ -46,7 +46,12 @@ class GameScene: SKScene {
         foodNode.position = CGPoint(x:250, y:200)
         foodNode.zPosition = 1
         
-        // More code later
+        /// Adding Physics Bodies
+        foodNode.physicsBody = SKPhysicsBody(rectangleOf: foodNode.size)
+        foodNode.physicsBody!.categoryBitMask = ColliderType.Food.rawValue
+        foodNode.physicsBody!.contactTestBitMask = ColliderType.Animal.rawValue
+        foodNode.physicsBody!.isDynamic = false
+
         
         addChild(foodNode)
         
@@ -149,34 +154,32 @@ class GameScene: SKScene {
         })
     }
 
-    
-    
-    required init(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-}
-
-
-extension GameScene: SKPhysicsContactDelegate {
-    func didBeginContact(contact: SKPhysicsContact) {
+    func didBegin(_ contact: SKPhysicsContact) {
+        print("➡️ Entrou na func\(#function)")
         /// These two lines give you the nodes that just collided.
         /// There is no specific order for the nodes,
         /// so you have to check the objects yourself if you care which is which.
         let firstNode = contact.bodyA.node
         let secondNode = contact.bodyB.node
-        
+
         /// You perform a bitwise-OR of the categories of the two collided nodes
         /// and store it in collision.
         let collision = firstNode!.physicsBody!.categoryBitMask | secondNode!.physicsBody!.categoryBitMask
-        
+
         /// Figure out what kind of collision occurred
         /// by comparing collision with the bit mask for an animal/animal or animal/food collision.
         if collision == ColliderType.Animal.rawValue | ColliderType.Animal.rawValue {
             NSLog("Animal collision detected")
+            
         } else if collision == ColliderType.Animal.rawValue | ColliderType.Food.rawValue {
             NSLog("Food collision detected.")
+            
         } else {
             NSLog("Error: Unknown collision category \(collision)")
         }
+    }
+    
+    required init(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 }
