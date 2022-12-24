@@ -13,7 +13,7 @@ class Pig: SKSpriteNode {
     let POINTS_PER_SEC: CGFloat = 80.0
     var wayPoints: [CGPoint] = []
     var velocity = CGPoint(x: 0, y: 0)
-
+    
     init(imageNamed name: String) {
         let texture = SKTexture(imageNamed: name)
         super.init(texture: texture, color: UIColor.clear, size: texture.size())
@@ -41,12 +41,16 @@ class Pig: SKSpriteNode {
             
             //2
             newPosition = CGPoint(x:currentPosition.x + velocity.x * CGFloat(dt), y:currentPosition.y + velocity.y * CGFloat(dt))
-            position = newPosition
+            position = checkBoundaries(position: newPosition)
 
             //3
             if frame.contains(targetPoint) {
                 wayPoints.remove(at: 0)
             }
+        } else {
+            newPosition = CGPoint(x: currentPosition.x + velocity.x * CGFloat(dt),
+                                  y: currentPosition.y + velocity.y * CGFloat(dt))
+            position = checkBoundaries(position: newPosition)
         }
     }
     
@@ -57,7 +61,7 @@ class Pig: SKSpriteNode {
         }
         //2
         let ref = CGMutablePath()
-//        let line_path:CGMutablePath = CGMutablePath()
+        //        let line_path:CGMutablePath = CGMutablePath()
         //3
         for i in 0..<wayPoints.count {
             let p = wayPoints[i]
@@ -65,15 +69,46 @@ class Pig: SKSpriteNode {
             //4
             if i == 0 {
                 ref.move(to: p)
-//                CGPathMoveToPoint(ref, NULL, CGFloat(p.x), CGFloat(p.y))
-//                CGPathMoveToPoint(ref, UnsafePointer<CoreFoundation.CGAffineTransform>, p.x, p.y)
+                //                CGPathMoveToPoint(ref, NULL, CGFloat(p.x), CGFloat(p.y))
+                //                CGPathMoveToPoint(ref, UnsafePointer<CoreFoundation.CGAffineTransform>, p.x, p.y)
             } else {
                 //                CGPathAddLineToPoint(ref, nil, p.x, p.y)
                 ref.addLine(to: p)
             }
         }
-
+        
         return ref
+    }
+    
+    func checkBoundaries(position: CGPoint) -> CGPoint {
+        //1
+        var newVelocity = velocity
+        var newPosition = position
+        
+        //2
+        let bottomLeft = CGPoint(x: 0, y: 0)
+        let topRight = CGPoint(x:scene!.size.width, y:scene!.size.height)
+        
+        //3
+        if newPosition.x <= bottomLeft.x {
+            newPosition.x = bottomLeft.x
+            newVelocity.x = -newVelocity.x
+        } else if newPosition.x >= topRight.x {
+            newPosition.x = topRight.x
+            newVelocity.x = -newVelocity.x
+        }
+        
+        if newPosition.y <= bottomLeft.y {
+            newPosition.y = bottomLeft.y
+            newVelocity.y = -newVelocity.y
+        } else if newPosition.y >= topRight.y {
+            newPosition.y = topRight.y
+            newVelocity.y = -newVelocity.y
+        }
+        
+        velocity = newVelocity
+        
+        return newPosition
     }
 
     required init(coder aDecoder: NSCoder) {
