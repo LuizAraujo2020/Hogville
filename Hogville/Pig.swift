@@ -14,8 +14,15 @@ class Pig: SKSpriteNode {
     var wayPoints: [CGPoint] = []
     var velocity = CGPoint(x: 0, y: 0)
     
+    var moveAnimation: SKAction
+
     init(imageNamed name: String) {
         let texture = SKTexture(imageNamed: name)
+        let textures = [SKTexture(imageNamed:"pig_1"),
+                        SKTexture(imageNamed:"pig_2"),
+                        SKTexture(imageNamed:"pig_3")]
+        moveAnimation = SKAction.animate(with: textures, timePerFrame:0.1)
+
         super.init(texture: texture, color: UIColor.clear, size: texture.size())
     }
     
@@ -28,6 +35,11 @@ class Pig: SKSpriteNode {
         let currentPosition = position
         var newPosition = position
         
+        /// Animate the Pig.
+        if(action(forKey: "moveAction") == nil) {
+            run(moveAnimation, withKey:"moveAction")
+        }
+
         //1
         if wayPoints.count > 0 {
             let targetPoint = wayPoints[0]
@@ -115,6 +127,9 @@ class Pig: SKSpriteNode {
     }
 
     required init(coder aDecoder: NSCoder) {
+        let textures = [SKTexture(imageNamed:"pig_1"), SKTexture(imageNamed:"pig_2"), SKTexture(imageNamed:"pig_3")]
+        moveAnimation = SKAction.animate(with: textures, timePerFrame:0.1)
+
         super.init(coder: aDecoder)!
     }
 }
