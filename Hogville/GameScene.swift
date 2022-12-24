@@ -172,8 +172,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             NSLog("Animal collision detected")
             
         } else if collision == ColliderType.Animal.rawValue | ColliderType.Food.rawValue {
-            NSLog("Food collision detected.")
-            
+            var pig: Pig!
+            /// Figure out which node is the pig and
+            /// call eat on it.
+            if firstNode!.name == "pig" {
+                pig = firstNode as? Pig
+                pig.eat()
+            } else {
+                pig = secondNode as? Pig
+                pig.eat()
+            }
+
         } else {
             NSLog("Error: Unknown collision category \(collision)")
         }
